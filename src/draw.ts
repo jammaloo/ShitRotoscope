@@ -62,8 +62,18 @@ function fitStage(w: number, h: number): void {
 export function renderStage(): void {
   if (!hasProject() || state.current < 0) return;
   const frame = state.frames[state.current];
-  frameCanvas.getContext('2d')!.clearRect(0, 0, frameCanvas.width, frameCanvas.height);
-  frameCanvas.getContext('2d')!.drawImage(frame.source, 0, 0);
+  const fctx = frameCanvas.getContext('2d')!;
+  fctx.clearRect(0, 0, frameCanvas.width, frameCanvas.height);
+  if (!state.hideFrame) {
+    fctx.drawImage(frame.source, 0, 0);
+    if (state.invertFrame) {
+      // 'difference' with white inverts all channels; universally supported.
+      fctx.globalCompositeOperation = 'difference';
+      fctx.fillStyle = '#ffffff';
+      fctx.fillRect(0, 0, frameCanvas.width, frameCanvas.height);
+      fctx.globalCompositeOperation = 'source-over';
+    }
+  }
   const dctx = drawCanvas.getContext('2d')!;
   dctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
   if (frame.drawing) dctx.drawImage(frame.drawing, 0, 0);

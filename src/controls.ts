@@ -7,6 +7,8 @@ import {
   on,
   setColor,
   setCurrent,
+  setHideFrame,
+  setInvertFrame,
   setShowFace,
   setShowPrev,
   setTool,
@@ -29,6 +31,8 @@ const swatches = document.getElementById('swatches')!;
 const customColor = document.getElementById('custom-color')! as HTMLInputElement;
 const faceToggle = document.getElementById('face-toggle')! as HTMLInputElement;
 const prevToggle = document.getElementById('prev-toggle')! as HTMLInputElement;
+const hideBgToggle = document.getElementById('hide-bg-toggle')! as HTMLInputElement;
+const invertBgToggle = document.getElementById('invert-bg-toggle')! as HTMLInputElement;
 const saveBtn = document.getElementById('save-btn')! as HTMLButtonElement;
 
 export function initControls(): void {
@@ -83,6 +87,8 @@ export function initControls(): void {
     }
   });
   prevToggle.addEventListener('change', () => setShowPrev(prevToggle.checked));
+  hideBgToggle.addEventListener('change', () => setHideFrame(hideBgToggle.checked));
+  invertBgToggle.addEventListener('change', () => setInvertFrame(invertBgToggle.checked));
 
   // ---- keyboard ----
   window.addEventListener('keydown', (e) => {

@@ -47,6 +47,8 @@ export const state = {
   color: '#000000',
   showFace: false,
   showPrev: false,
+  hideFrame: false,
+  invertFrame: false,
 };
 
 export function hasProject(): boolean {
@@ -106,5 +108,15 @@ export function setShowFace(on: boolean): void {
 
 export function setShowPrev(on: boolean): void {
   state.showPrev = on;
+  emit('overlay');
+}
+
+export function setHideFrame(on: boolean): void {
+  state.hideFrame = on;
+  emit('overlay');
+}
+
+export function setInvertFrame(on: boolean): void {
+  state.invertFrame = on;
   emit('overlay');
 }

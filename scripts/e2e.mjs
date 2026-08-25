@@ -130,6 +130,32 @@ expect(await canvasHasInk('#overlay-canvas'), 'onion skin drawn on overlay');
 await page.click('label.toggle-row:has(#prev-toggle)');
 expect(!(await canvasHasInk('#overlay-canvas')), 'onion skin cleared');
 
+// background hide/invert toggles
+const pixelAt = (fx, fy) =>
+  page.$eval('#frame-canvas', (c, [fx, fy]) => {
+    const d = c.getContext('2d').getImageData(Math.floor(c.width * fx), Math.floor(c.height * fy), 1, 1).data;
+    return [d[0], d[1], d[2]];
+  }, [fx, fy]);
+const p0 = await pixelAt(0.15, 0.5);
+await page.click('label.toggle-row:has(#invert-bg-toggle)');
+const p1 = await pixelAt(0.15, 0.5);
+const invertedOk = p0.every((v, i) => Math.abs(p1[i] - (255 - v)) < 40);
+expect(invertedOk, 'invert flips frame pixels', `${p0} -> ${p1}`);
+await page.click('label.toggle-row:has(#invert-bg-toggle)');
+expect((await pixelAt(0.15, 0.5)).every((v, i) => Math.abs(v - p0[i]) < 10), 'invert restores frame');
+
+await drawStroke(30, 30, 60, 60); // something to look at with the background hidden
+await page.click('label.toggle-row:has(#hide-bg-toggle)');
+const frameEmpty = await page.$eval('#frame-canvas', (c) => {
+  const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  for (let i = 3; i < d.length; i += 4) if (d[i] > 0) return false;
+  return true;
+});
+expect(frameEmpty, 'hide background clears frame layer');
+expect(await canvasHasInk('#draw-canvas'), 'drawing still visible with background hidden');
+await page.click('label.toggle-row:has(#hide-bg-toggle)');
+expect((await pixelAt(0.15, 0.5)).every((v, i) => Math.abs(v - p0[i]) < 10), 'background restored');
+
 // thumbnail jump
 await page.click('.thumb:nth-child(5)');
 expect((await counter()) === '5 / 30', 'thumbnail click jumps', await counter());

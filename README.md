@@ -19,8 +19,9 @@ Then open http://localhost:5173.
    low fps is the shitrotoscope way).
 2. Draw over each frame with the **Pen**. Fix mistakes with the **Eraser** or
    **Undo** (⌘Z / Ctrl+Z). Use the **Previous Frame** toggle for onion-skin
-   tracing, and **Face Detection** to show a face box + landmarks to trace
-   against.
+   tracing, and **Face Detection** to show face contours (oval, eyes, brows,
+   lips, nose) to trace against. The **Background** section can hide the video
+   frame entirely or invert it while you draw.
 3. Click thumbnails on the left to jump between frames; ← / → arrows also work.
 4. **Save** exports a looping GIF. Pick the background: the original video
    frames, white, or black. Single-image projects export a PNG instead.
