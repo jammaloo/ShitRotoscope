@@ -217,18 +217,31 @@ console.log(`    gif: ${probe}`);
 expect(/^\d+,\d+,\d+$/.test(probe), 'gif decodable via ffprobe', probe);
 expect(probe.endsWith(',30'), 'gif has 30 frames', probe);
 
-// white background variant
+// transparent-background variant
 const [download2] = await Promise.all([
   page.waitForEvent('download', { timeout: 60000 }),
   (async () => {
     await page.click('#save-btn');
     await page.waitForSelector('#save-dialog[open]');
-    await page.click('label.bg-option:has(input[value="white"]) span');
+    await page.click('label.bg-option:has(input[value="transparent"]) span');
     await page.click('#save-ok');
   })(),
 ]);
-await download2.saveAs(OUT + '/test-white.gif');
-ok('white-background gif exported');
+await download2.saveAs(OUT + '/test-transparent.gif');
+const pixFmt = execSync(
+  `ffprobe -v error -select_streams v:0 -show_entries frame=pix_fmt -of csv=p=0 "${OUT}/test-transparent.gif"`,
+).toString().trim();
+console.log(`    transparent gif pix_fmt: ${pixFmt}`);
+expect(/(rgb|bgr)a$/i.test(pixFmt), 'transparent gif has an alpha channel', pixFmt);
+let tprobe = '';
+try {
+  tprobe = execSync(
+    `ffprobe -v error -select_streams v:0 -count_frames -show_entries stream=width,height,nb_read_frames -of csv=p=0 "${OUT}/test-transparent.gif"`,
+  ).toString().trim();
+} catch {
+  tprobe = 'ffprobe failed';
+}
+expect(tprobe.endsWith(',30'), 'transparent gif has 30 frames', tprobe);
 
 // ---------- 7. single image + face detection + PNG ----------
 console.log('\n[7] image import + face detection + PNG export');
@@ -301,6 +314,7 @@ const [download3] = await Promise.all([
     await page.click('#save-btn');
     await page.waitForSelector('#save-dialog[open]');
     expect((await page.textContent('#save-ok')).trim() === 'Export PNG', 'PNG mode for single image');
+    await page.click('label.bg-option:has(input[value="transparent"]) span');
     await page.click('#save-ok');
   })(),
 ]);

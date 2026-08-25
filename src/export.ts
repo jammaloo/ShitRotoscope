@@ -2,7 +2,7 @@ import { GIFEncoder, applyPalette, quantize } from 'gifenc';
 import { Frame, hasProject, state } from './state';
 import { downloadBlob, hideProgress, showProgress, updateProgress } from './ui';
 
-type Background = 'frame' | 'white' | 'black';
+type Background = 'white' | 'black' | 'transparent';
 
 const saveDialog = document.getElementById('save-dialog')! as HTMLDialogElement;
 const saveTitle = document.getElementById('save-title')!;
@@ -30,7 +30,7 @@ function openSaveDialog(): void {
 async function onConfirm(): Promise<void> {
   if (!hasProject()) return;
   const checked = saveDialog.querySelector<HTMLInputElement>('input[name="bg"]:checked');
-  const bg = (checked?.value ?? 'frame') as Background;
+  const bg = (checked?.value ?? 'white') as Background;
   saveDialog.close();
 
   try {
@@ -54,9 +54,7 @@ function composite(frame: Frame, bg: Background): HTMLCanvasElement {
   c.width = w;
   c.height = h;
   const ctx = c.getContext('2d')!;
-  if (bg === 'frame') {
-    ctx.drawImage(frame.source, 0, 0);
-  } else {
+  if (bg === 'white' || bg === 'black') {
     ctx.fillStyle = bg === 'white' ? '#ffffff' : '#000000';
     ctx.fillRect(0, 0, w, h);
   }
@@ -78,14 +76,41 @@ async function exportGif(bg: Background): Promise<void> {
   const gif = GIFEncoder();
   const w = frames[0].source.width;
   const h = frames[0].source.height;
+  const transparentGif = bg === 'transparent';
 
   showProgress('Encoding GIF… 0 / ' + frames.length, 0);
   for (let i = 0; i < frames.length; i++) {
     const canvas = composite(frames[i], bg);
     const { data } = canvas.getContext('2d')!.getImageData(0, 0, w, h);
-    const palette = quantize(data, 256);
-    const index = applyPalette(data, palette);
-    gif.writeFrame(index, w, h, { palette, delay, repeat: 0 });
+
+    // GIF only has 1-bit alpha: snap alpha with oneBitAlpha and mark the
+    // palette's transparent entry per frame.
+    const palette = transparentGif
+      ? quantize(data, 256, { format: 'rgba4444', oneBitAlpha: true })
+      : quantize(data, 256);
+    const index = transparentGif
+      ? applyPalette(data, palette, 'rgba4444')
+      : applyPalette(data, palette);
+
+    const opts: {
+      palette: number[][];
+      delay: number;
+      repeat: number;
+      transparent?: boolean;
+      transparentIndex?: number;
+      dispose?: number;
+    } = { palette, delay, repeat: 0 };
+    if (transparentGif) {
+      const transparentIndex = palette.findIndex((color) => color.length > 3 && color[3] === 0);
+      if (transparentIndex >= 0) {
+        opts.transparent = true;
+        opts.transparentIndex = transparentIndex;
+      }
+      // Dispose to background so earlier frames don't bleed through the
+      // transparent areas of later ones.
+      opts.dispose = 2;
+    }
+    gif.writeFrame(index, w, h, opts);
 
     if (i % 4 === 0 || i === frames.length - 1) {
       updateProgress(`Encoding GIF… ${i + 1} / ${frames.length}`, (i + 1) / frames.length);

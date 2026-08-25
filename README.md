@@ -23,8 +23,9 @@ Then open http://localhost:5173.
    lips, nose) to trace against. The **Background** section can hide the video
    frame entirely or invert it while you draw.
 3. Click thumbnails on the left to jump between frames; ← / → arrows also work.
-4. **Save** exports a looping GIF. Pick the background: the original video
-   frames, white, or black. Single-image projects export a PNG instead.
+4. **Save** exports a looping GIF. Pick the background: white, black, or
+   transparent (GIFs use 1-bit alpha, PNGs keep full transparency).
+   Single-image projects export a PNG instead.
 
 ## Notes
 
