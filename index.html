@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%8F%EF%B8%8F%3C/text%3E%3C/svg%3E" />
   <title>ShitRotoscope</title>
 </head>
@@ -39,12 +39,17 @@
     </main>
 
     <aside id="control-pane">
-      <div class="pane-header">
+      <div class="pane-header" id="controls-header">
         <span>Controls</span>
-        <button id="open-btn" class="btn small">Open…</button>
+        <span class="header-actions">
+          <button id="open-btn" class="btn small">Open…</button>
+          <button id="collapse-btn" class="btn icon-btn small" title="Toggle controls" aria-expanded="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </span>
       </div>
 
-      <section class="control-section">
+      <section class="control-section" id="nav-section">
         <div class="frame-nav">
           <button id="prev-btn" class="btn icon-btn" title="Previous frame (←)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -56,6 +61,7 @@
         </div>
       </section>
 
+      <div id="controls-body">
       <section class="control-section">
         <h2>Tools</h2>
         <div class="tool-row">
@@ -126,6 +132,7 @@
           <span class="toggle"><input type="checkbox" id="invert-bg-toggle" /><span class="slider"></span></span>
         </label>
       </section>
+      </div>
 
       <div class="save-area">
         <button id="save-btn" class="btn primary big" disabled>Save</button>

@@ -311,6 +311,66 @@ console.log(`    png: ${pngInfo}`);
 expect(pngInfo.includes('PNG image data'), 'png exported');
 
 await page.screenshot({ path: OUT + '/final.png' });
+
+// ---------- 9. mobile layout ----------
+console.log('\n[9] mobile layout');
+const mPage = await browser.newPage({
+  viewport: { width: 390, height: 844 },
+  hasTouch: true,
+  isMobile: true,
+});
+mPage.on('pageerror', (err) => errors.push('mobile pageerror: ' + err.message));
+await mPage.goto(BASE);
+await mPage.setInputFiles('#file-input', '/tmp/srt/face.jpg');
+await mPage.waitForFunction(() => document.querySelector('#frame-counter').textContent.includes('1 / 1'));
+
+const layout = await mPage.evaluate(() => {
+  const box = (el) => {
+    const r = el.getBoundingClientRect();
+    return { x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height) };
+  };
+  return {
+    stage: box(document.getElementById('stage-wrap')),
+    thumbs: box(document.getElementById('thumb-pane')),
+    controls: box(document.getElementById('control-pane')),
+    controlsBodyVisible: getComputedStyle(document.getElementById('controls-body')).display !== 'none',
+    saveVisible: !!document.getElementById('save-btn').offsetParent,
+  };
+});
+expect(layout.stage.y < layout.thumbs.y, 'stage above reel', JSON.stringify(layout));
+expect(layout.thumbs.y < layout.controls.y, 'reel above controls');
+expect(layout.thumbs.h < 150 && layout.thumbs.w > 300, 'reel is a short full-width strip', `h=${layout.thumbs.h} w=${layout.thumbs.w}`);
+expect(layout.stage.h > 400, 'stage takes most of the screen', `h=${layout.stage.h}`);
+expect(!layout.controlsBodyVisible, 'controls collapsed by default on mobile');
+expect(layout.saveVisible, 'save button visible while collapsed');
+
+const headerLabel = mPage.locator('#controls-header > span').first();
+await headerLabel.click();
+expect(
+  await mPage.evaluate(() => getComputedStyle(document.getElementById('controls-body')).display !== 'none'),
+  'controls expand on tap',
+);
+await headerLabel.click();
+expect(
+  await mPage.evaluate(() => getComputedStyle(document.getElementById('controls-body')).display === 'none'),
+  'controls collapse on tap',
+);
+
+// drawing works on the mobile viewport
+const mbox = await mPage.locator('#draw-canvas').boundingBox();
+await mPage.mouse.move(mbox.x + mbox.width * 0.3, mbox.y + mbox.height * 0.3);
+await mPage.mouse.down();
+await mPage.mouse.move(mbox.x + mbox.width * 0.7, mbox.y + mbox.height * 0.6, { steps: 5 });
+await mPage.mouse.up();
+const mInk = await mPage.$eval('#draw-canvas', (c) => {
+  const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  for (let i = 3; i < d.length; i += 4) if (d[i] > 0) return true;
+  return false;
+});
+expect(mInk, 'drawing works on mobile viewport');
+await mPage.screenshot({ path: OUT + '/mobile.png' });
+await mPage.close();
+
 await browser.close();
 
 console.log('\npage errors:', errors.length ? errors : 'none');

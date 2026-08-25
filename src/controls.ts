@@ -104,6 +104,23 @@ export function initControls(): void {
     }
   });
 
+  // ---- collapsible controls (mobile layout) ----
+  const controlPane = document.getElementById('control-pane')!;
+  const collapseBtn = document.getElementById('collapse-btn')! as HTMLButtonElement;
+  const controlsHeader = document.getElementById('controls-header')!;
+  const setCollapsed = (collapsed: boolean) => {
+    controlPane.classList.toggle('collapsed', collapsed);
+    collapseBtn.setAttribute('aria-expanded', String(!collapsed));
+  };
+  if (window.matchMedia('(max-width: 768px)').matches) setCollapsed(true);
+  const toggleControls = (e: Event) => {
+    const t = e.target as HTMLElement;
+    if (t.closest('#open-btn') || t.closest('#collapse-btn')) return;
+    setCollapsed(!controlPane.classList.contains('collapsed'));
+  };
+  collapseBtn.addEventListener('click', () => setCollapsed(!controlPane.classList.contains('collapsed')));
+  controlsHeader.addEventListener('click', toggleControls);
+
   updateToolButtons();
   updateSwatches();
   updatePrevToggle();

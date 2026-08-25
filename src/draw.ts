@@ -50,7 +50,7 @@ function layoutStage(): void {
 }
 
 function fitStage(w: number, h: number): void {
-  const pad = 48;
+  const pad = stageWrap.clientWidth < 500 ? 12 : 48;
   const availW = stageWrap.clientWidth - pad;
   const availH = stageWrap.clientHeight - pad;
   const scale = Math.min(availW / w, availH / h, 1.5);

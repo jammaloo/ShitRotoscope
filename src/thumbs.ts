@@ -57,5 +57,5 @@ function highlightCurrent(): void {
     el.classList.toggle('current', i === current);
   });
   const el = thumbList.children[current] as HTMLElement | undefined;
-  if (el) el.scrollIntoView({ block: 'nearest' });
+  if (el) el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
