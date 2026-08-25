@@ -1,9 +1,11 @@
 import { FaceLandmarker } from '@mediapipe/tasks-vision';
 import { cachedFaces, detectFrame, FaceOverlay } from './facedetect';
+import { cachedPersons, detectPersons } from './personedges';
 import { hasProject, on, state } from './state';
 
 const overlayCanvas = document.getElementById('overlay-canvas')! as HTMLCanvasElement;
 const FACE_COLOR = '#38bdf8';
+const PERSON_COLOR = '#4ade80';
 
 export function initOverlays(): void {
   on('frame', renderOverlay);
@@ -40,6 +42,33 @@ export function renderOverlay(): void {
         .catch((err) => console.warn('Face detection failed:', err));
     }
   }
+
+  if (state.showPersons) {
+    const cached = cachedPersons(i);
+    if (cached) {
+      drawPersonEdges(ctx, cached.segments);
+    } else if (cached === undefined) {
+      detectPersons(i)
+        .then((edges) => {
+          if (edges && state.current === i) drawPersonEdges(ctx, edges.segments);
+        })
+        .catch((err) => console.warn('Person segmentation failed:', err));
+    }
+  }
+}
+
+function drawPersonEdges(ctx: CanvasRenderingContext2D, segments: [number, number, number, number][]): void {
+  ctx.save();
+  ctx.strokeStyle = PERSON_COLOR;
+  ctx.globalAlpha = 0.9;
+  ctx.lineWidth = Math.max(1.2, 1.8 * (overlayCanvas.width / 640));
+  ctx.beginPath();
+  for (const [x1, y1, x2, y2] of segments) {
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+  }
+  ctx.stroke();
+  ctx.restore();
 }
 
 // Face-mesh landmark indices for a dlib-style nose: bridge down the center,

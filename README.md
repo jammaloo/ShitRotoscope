@@ -32,8 +32,10 @@ Then open http://localhost:5173.
 - Frames are downscaled to at most 720px on the long edge; imports cap at 600
   frames.
 - Face overlay: MediaPipe BlazeFace full-range finds every face (including small
-  or distant ones, up to 5), then the Face Landmarker draws a dense ~478-point
-  mesh over each. Both models and the WASM runtime are
+  or distant ones, up to 5), then the Face Landmarker draws contour outlines
+  (face oval, eyes, brows, lips, nose). Person Edges draws a contour around
+  each detected person using a DeepLab v3 segmenter. All models and the WASM
+  runtime are
   bundled in `public/models/`, so everything runs locally offline.
 - GIF encoding happens in the browser via `gifenc`.
 

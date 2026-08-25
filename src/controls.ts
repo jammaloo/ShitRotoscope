@@ -1,6 +1,7 @@
 import { undo } from './draw';
 import { ensureDetector } from './facedetect';
 import { importFile } from './import';
+import { ensureSegmenter } from './personedges';
 import { renderOverlay } from './overlays';
 import {
   hasProject,
@@ -10,6 +11,7 @@ import {
   setHideFrame,
   setInvertFrame,
   setShowFace,
+  setShowPersons,
   setShowPrev,
   setTool,
   setBrushSize,
@@ -33,6 +35,7 @@ const faceToggle = document.getElementById('face-toggle')! as HTMLInputElement;
 const prevToggle = document.getElementById('prev-toggle')! as HTMLInputElement;
 const hideBgToggle = document.getElementById('hide-bg-toggle')! as HTMLInputElement;
 const invertBgToggle = document.getElementById('invert-bg-toggle')! as HTMLInputElement;
+const personToggle = document.getElementById('person-toggle')! as HTMLInputElement;
 const saveBtn = document.getElementById('save-btn')! as HTMLButtonElement;
 
 export function initControls(): void {
@@ -89,6 +92,20 @@ export function initControls(): void {
   prevToggle.addEventListener('change', () => setShowPrev(prevToggle.checked));
   hideBgToggle.addEventListener('change', () => setHideFrame(hideBgToggle.checked));
   invertBgToggle.addEventListener('change', () => setInvertFrame(invertBgToggle.checked));
+  personToggle.addEventListener('change', async () => {
+    setShowPersons(personToggle.checked);
+    if (personToggle.checked) {
+      try {
+        await ensureSegmenter();
+        renderOverlay();
+      } catch (err) {
+        console.error(err);
+        alert('Could not load the person segmentation model.');
+        personToggle.checked = false;
+        setShowPersons(false);
+      }
+    }
+  });
 
   // ---- keyboard ----
   window.addEventListener('keydown', (e) => {
