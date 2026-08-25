@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%8F%EF%B8%8F%3C/text%3E%3C/svg%3E" />
+  <title>ShitRotoscope</title>
+</head>
+<body>
+  <div id="app">
+    <aside id="thumb-pane">
+      <div class="pane-header">Frames</div>
+      <div id="thumb-list"></div>
+    </aside>
+
+    <main id="stage-wrap">
+      <div id="stage" hidden>
+        <canvas id="frame-canvas"></canvas>
+        <canvas id="overlay-canvas"></canvas>
+        <canvas id="draw-canvas"></canvas>
+        <div id="brush-cursor"></div>
+      </div>
+
+      <div id="empty-state">
+        <div class="empty-inner">
+          <h1>ShitRotoscope</h1>
+          <p>Import a video or image, trace it badly, export a GIF.</p>
+          <button id="empty-open-btn" class="btn primary">Open a file…</button>
+          <p class="hint">or drag &amp; drop it anywhere</p>
+        </div>
+      </div>
+
+      <div id="progress-overlay" hidden>
+        <div class="progress-card">
+          <div id="progress-label">Importing…</div>
+          <div class="progress-track"><div id="progress-fill"></div></div>
+        </div>
+      </div>
+    </main>
+
+    <aside id="control-pane">
+      <div class="pane-header">
+        <span>Controls</span>
+        <button id="open-btn" class="btn small">Open…</button>
+      </div>
+
+      <section class="control-section">
+        <div class="frame-nav">
+          <button id="prev-btn" class="btn icon-btn" title="Previous frame (←)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div id="frame-counter">0 / 0</div>
+          <button id="next-btn" class="btn icon-btn" title="Next frame (→)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <section class="control-section">
+        <h2>Tools</h2>
+        <div class="tool-row">
+          <button id="pen-btn" class="btn tool-btn active" title="Pen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+            <span>Pen</span>
+          </button>
+          <button id="eraser-btn" class="btn tool-btn" title="Eraser">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
+            <span>Eraser</span>
+          </button>
+          <button id="undo-btn" class="btn icon-btn" title="Undo (⌘Z / Ctrl+Z)" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.36 2.64L3 13"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <section class="control-section">
+        <h2>Brush Size</h2>
+        <div class="brush-row">
+          <button id="brush-minus" class="btn icon-btn small" title="Smaller brush">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <input id="brush-slider" type="range" min="1" max="60" value="6" />
+          <button id="brush-plus" class="btn icon-btn small" title="Bigger brush">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        <div id="brush-label">6 px</div>
+      </section>
+
+      <section class="control-section">
+        <h2>Color</h2>
+        <div id="swatches" class="swatch-row">
+          <button class="swatch active" data-color="#000000" style="--c:#000000" title="Black"></button>
+          <button class="swatch" data-color="#ff3b30" style="--c:#ff3b30" title="Red"></button>
+          <button class="swatch" data-color="#ffffff" style="--c:#ffffff" title="White"></button>
+          <button class="swatch" data-color="#2563eb" style="--c:#2563eb" title="Blue"></button>
+          <button class="swatch" data-color="#22c55e" style="--c:#22c55e" title="Green"></button>
+          <button class="swatch" data-color="#facc15" style="--c:#facc15" title="Yellow"></button>
+          <label class="swatch custom" title="Custom color">
+            <input type="color" id="custom-color" value="#000000" />
+            <span class="custom-wheel"></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="control-section">
+        <h2>Overlays</h2>
+        <label class="toggle-row">
+          <span>Face Detection</span>
+          <span class="toggle"><input type="checkbox" id="face-toggle" /><span class="slider"></span></span>
+        </label>
+        <label class="toggle-row">
+          <span>Previous Frame</span>
+          <span class="toggle"><input type="checkbox" id="prev-toggle" /><span class="slider"></span></span>
+        </label>
+      </section>
+
+      <div class="save-area">
+        <button id="save-btn" class="btn primary big" disabled>Save</button>
+      </div>
+    </aside>
+  </div>
+
+  <dialog id="fps-dialog">
+    <h3>Import video</h3>
+    <p id="fps-meta" class="hint"></p>
+    <div class="fps-presets" id="fps-presets"></div>
+    <label class="fps-custom-row">
+      <span>Custom</span>
+      <input id="fps-custom" type="number" min="1" max="30" step="1" value="12" />
+      <span>fps</span>
+    </label>
+    <p id="fps-frames" class="hint"></p>
+    <p id="fps-warning" class="warning" hidden>Only the first 600 frames will be imported.</p>
+    <div class="dialog-actions">
+      <button id="fps-cancel" class="btn">Cancel</button>
+      <button id="fps-ok" class="btn primary">Import</button>
+    </div>
+  </dialog>
+
+  <dialog id="save-dialog">
+    <h3 id="save-title">Export</h3>
+    <p id="save-meta" class="hint"></p>
+    <h4>Background</h4>
+    <div class="bg-options">
+      <label class="bg-option"><input type="radio" name="bg" value="frame" checked /><span>Video frame</span></label>
+      <label class="bg-option"><input type="radio" name="bg" value="white" /><span>White</span></label>
+      <label class="bg-option"><input type="radio" name="bg" value="black" /><span>Black</span></label>
+    </div>
+    <div class="dialog-actions">
+      <button id="save-cancel" class="btn">Cancel</button>
+      <button id="save-ok" class="btn primary">Export GIF</button>
+    </div>
+  </dialog>
+
+  <input type="file" id="file-input" accept="video/*,image/*" hidden />
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
