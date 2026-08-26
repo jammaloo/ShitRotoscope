@@ -4,16 +4,14 @@ import { initDraw, renderStage } from './draw';
 import { initExport } from './export';
 import { initFaceDetect } from './facedetect';
 import { initOverlays } from './overlays';
-import { initPersonEdges } from './personedges';
 import { on } from './state';
 import { initThumbs } from './thumbs';
 
 initDraw();
 initThumbs();
-// Face/person caches must be cleared before overlays re-render, or a newly
-// loaded project briefly draws the previous project's cached results.
+// Face cache must be cleared before overlays re-render, or a newly loaded
+// project briefly draws the previous project's cached results.
 initFaceDetect();
-initPersonEdges();
 initOverlays();
 initControls();
 initExport();

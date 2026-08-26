@@ -47,7 +47,6 @@ export const state = {
   color: '#000000',
   showFace: false,
   showPrev: false,
-  showPersons: false,
   hideFrame: false,
   invertFrame: false,
 };
@@ -109,11 +108,6 @@ export function setShowFace(on: boolean): void {
 
 export function setShowPrev(on: boolean): void {
   state.showPrev = on;
-  emit('overlay');
-}
-
-export function setShowPersons(on: boolean): void {
-  state.showPersons = on;
   emit('overlay');
 }
 

@@ -20,7 +20,7 @@ page.on('console', (msg) => {
   if (msg.type() === 'error' && !/^INFO: Created TensorFlow Lite/.test(msg.text())) {
     errors.push('console: ' + msg.text());
   }
-  if (msg.type() === 'warning' && /(Face detection|Person segmentation) failed/i.test(msg.text())) {
+  if (msg.type() === 'warning' && /Face detection failed/i.test(msg.text())) {
     errors.push('console: ' + msg.text());
   }
 });
@@ -307,47 +307,6 @@ for (let i = 0; i < 15; i++) {
 console.log(`    blue pixels: ${bluePx}, column clusters: ${clusters}`);
 expect(clusters >= 2, 'multiple face boxes drawn', `clusters=${clusters}, blue=${bluePx}`);
 await page.screenshot({ path: OUT + '/multiface.png' });
-
-// person-edge contours (green) on the same three-person photo
-await page.click('label.toggle-row:has(#person-toggle)');
-const countPersonClusters = () =>
-  page.evaluate(() => {
-    const c = document.querySelector('#overlay-canvas');
-    const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
-    const cols = new Array(c.width).fill(false);
-    let green = 0;
-    for (let y = 0; y < c.height; y += 2) {
-      for (let x = 0; x < c.width; x += 1) {
-        const i = (y * c.width + x) * 4;
-        if (d[i + 3] > 200 && d[i] < 130 && d[i + 1] > 180 && d[i + 2] > 80 && d[i + 2] < 190) {
-          cols[x] = true;
-          green++;
-        }
-      }
-    }
-    let runs = 0;
-    let runLen = 0;
-    for (let x = 0; x < c.width; x++) {
-      if (cols[x]) runLen++;
-      else {
-        if (runLen >= c.width * 0.03) runs++;
-        runLen = 0;
-      }
-    }
-    if (runLen >= c.width * 0.03) runs++;
-    return { green, runs };
-  });
-let personClusters = 0;
-let greenPx = 0;
-for (let i = 0; i < 20; i++) {
-  await page.waitForTimeout(1000);
-  ({ green: greenPx, runs: personClusters } = await countPersonClusters());
-  if (personClusters >= 2) break;
-}
-console.log(`    green pixels: ${greenPx}, person clusters: ${personClusters}`);
-expect(greenPx > 200, 'person edges drawn', `green=${greenPx}`);
-expect(personClusters >= 2, 'contours around multiple people', `clusters=${personClusters}`);
-await page.screenshot({ path: OUT + '/persons.png' });
 
 const [download3] = await Promise.all([
   page.waitForEvent('download', { timeout: 30000 }),

@@ -33,9 +33,7 @@ Then open http://localhost:5173.
   frames.
 - Face overlay: MediaPipe BlazeFace full-range finds every face (including small
   or distant ones, up to 5), then the Face Landmarker draws contour outlines
-  (face oval, eyes, brows, lips, nose). Person Edges draws a contour around
-  each detected person using a DeepLab v3 segmenter. All models and the WASM
-  runtime are
+  (face oval, eyes, brows, lips, nose). All models and the WASM runtime are
   bundled in `public/models/`, so everything runs locally offline.
 - GIF encoding happens in the browser via `gifenc`.
 
