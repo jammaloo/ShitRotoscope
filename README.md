@@ -14,9 +14,11 @@ Then open http://localhost:5173.
 
 ## How to use
 
-1. **Open** a video (MP4/H.264 or WebM work best) or an image, or drag & drop it
-   anywhere. For videos you pick the frames-per-second to extract (default 12 —
-   low fps is the shitrotoscope way).
+1. **Open** a video (MP4/H.264 or WebM work best), an image, or an animated
+   GIF, or drag & drop it anywhere. For videos you pick the frames-per-second
+   to extract (default 12 — low fps is the shitrotoscope way). GIFs are
+   decomposed with their original per-frame timing (re-export uses the
+   average delay).
 2. Draw over each frame with the **Pen**. Fix mistakes with the **Eraser** or
    **Undo** (⌘Z / Ctrl+Z). Use the **Previous Frame** toggle for onion-skin
    tracing, and **Face Detection** to show face contours (oval, eyes, brows,

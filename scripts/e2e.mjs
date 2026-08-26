@@ -324,6 +324,35 @@ const pngInfo = execSync(`file "${pngPath}"`).toString().trim();
 console.log(`    png: ${pngInfo}`);
 expect(pngInfo.includes('PNG image data'), 'png exported');
 
+// ---------- 10. animated GIF import ----------
+console.log('\n[10] animated GIF import');
+page.once('dialog', (d) => d.accept());
+await page.setInputFiles('#file-input', '/tmp/srt/anim.gif');
+await page.waitForFunction(() => document.querySelector('#frame-counter').textContent.includes('1 / 8'));
+expect((await counter()) === '1 / 8', '8-frame gif imported', await counter());
+expect((await page.locator('.thumb').count()) === 8, '8 thumbnails for gif frames');
+await drawStroke(30, 30, 60, 60);
+expect(await canvasHasInk('#draw-canvas'), 'drawing on gif frame');
+await page.click('#next-btn');
+expect((await counter()) === '2 / 8', 'gif frame navigation', await counter());
+expect(!(await page.locator('#prev-toggle').isDisabled()), 'previous-frame toggle active for gif');
+
+// re-export round-trip
+const [gifOut] = await Promise.all([
+  page.waitForEvent('download', { timeout: 60000 }),
+  (async () => {
+    await page.click('#save-btn');
+    await page.waitForSelector('#save-dialog[open]');
+    await page.click('#save-ok');
+  })(),
+]);
+await gifOut.saveAs(OUT + '/from-gif.gif');
+const gifProbe = execSync(
+  `ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of csv=p=0 "${OUT}/from-gif.gif"`,
+).toString().trim();
+expect(gifProbe === '8', 're-exported gif has 8 frames', gifProbe);
+
+// back to the face image for any later sections
 await page.screenshot({ path: OUT + '/final.png' });
 
 // ---------- 9. mobile layout ----------

@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.22",
-    "gifenc": "^1.0.3"
+    "gifenc": "^1.0.3",
+    "gifuct-js": "^2.1.2"
   },
   "devDependencies": {
     "playwright-core": "^1.62.1",

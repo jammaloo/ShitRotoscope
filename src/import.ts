@@ -1,3 +1,4 @@
+import { decompressFrames, parseGIF } from 'gifuct-js';
 import { Frame, MAX_DIM, MAX_FRAMES, loadProject } from './state';
 import { showProgress, updateProgress, hideProgress } from './ui';
 
@@ -13,14 +14,101 @@ const fpsCancel = document.getElementById('fps-cancel')!;
 const FPS_PRESETS = [6, 8, 12, 15, 24];
 const DEFAULT_FPS = 12;
 
-/** Import a video or image file as a new project. */
+/** Import a video, image, or (animated) GIF file as a new project. */
 export async function importFile(file: File): Promise<void> {
-  if (file.type.startsWith('image/')) {
+  if (file.type === 'image/gif' || /\.gif$/i.test(file.name)) {
+    await importGif(file);
+  } else if (file.type.startsWith('image/')) {
     await importImage(file);
   } else if (file.type.startsWith('video/') || /\.(mp4|webm|mov|m4v|avi|mkv)$/i.test(file.name)) {
     await importVideo(file);
   } else {
     throw new Error(`Unsupported file type: ${file.type || file.name}`);
+  }
+}
+
+async function importGif(file: File): Promise<void> {
+  showProgress('Decoding GIF…', 0.2);
+  try {
+    const buffer = await file.arrayBuffer();
+    const gif = parseGIF(buffer);
+    const parsed = decompressFrames(gif, true);
+    if (parsed.length === 0) throw new Error('This GIF has no frames.');
+
+    const vw = gif.lsd.width;
+    const vh = gif.lsd.height;
+    if (!vw || !vh) throw new Error('GIF has no readable dimensions.');
+
+    // Composite partial frames onto a logical-screen canvas, honoring each
+    // frame's disposal method (the standard gifuct-js compositing algorithm).
+    const full = scaledCanvas(vw, vh);
+    const fullCtx = full.getContext('2d')!;
+    const patch = document.createElement('canvas');
+    patch.width = vw;
+    patch.height = vh;
+    const patchCtx = patch.getContext('2d')!;
+    const scaleX = full.width / vw;
+    const scaleY = full.height / vh;
+
+    const frames: Frame[] = [];
+    const delays: number[] = [];
+    let previous: (typeof parsed)[number] | null = null;
+    let saved: ImageData | null = null;
+    let truncated = false;
+
+    for (let i = 0; i < parsed.length; i++) {
+      if (frames.length >= MAX_FRAMES) {
+        truncated = true;
+        break;
+      }
+      const frame = parsed[i];
+
+      // Dispose the previous frame's pixels before drawing this one.
+      if (previous?.disposalType === 2) {
+        fullCtx.clearRect(
+          previous.dims.left * scaleX,
+          previous.dims.top * scaleY,
+          previous.dims.width * scaleX,
+          previous.dims.height * scaleY,
+        );
+      } else if (previous?.disposalType === 3 && saved) {
+        fullCtx.putImageData(saved, 0, 0);
+      }
+      if (frame.disposalType === 3) {
+        saved = fullCtx.getImageData(0, 0, full.width, full.height);
+      }
+
+      patchCtx.putImageData(
+        new ImageData(frame.patch as Uint8ClampedArray<ArrayBuffer>, frame.dims.width, frame.dims.height),
+        0,
+        0,
+      );
+      fullCtx.drawImage(patch, frame.dims.left * scaleX, frame.dims.top * scaleY, frame.dims.width * scaleX, frame.dims.height * scaleY);
+
+      const source = document.createElement('canvas');
+      source.width = full.width;
+      source.height = full.height;
+      source.getContext('2d')!.drawImage(full, 0, 0);
+      frames.push({ source, drawing: null });
+      // GIF frame delays are centiseconds; gifuct reports milliseconds.
+      delays.push(frame.delay > 0 ? frame.delay : 100);
+
+      if (i % 5 === 0 || i === parsed.length - 1) {
+        updateProgress(`Decoding GIF… ${i + 1} / ${parsed.length}`, (i + 1) / parsed.length);
+        await new Promise((r) => setTimeout(r, 0));
+      }
+      previous = frame;
+    }
+
+    // Re-export uses a constant delay: derive fps from the average frame delay.
+    const avgDelay = delays.reduce((a, b) => a + b, 0) / delays.length;
+    const fps = Math.max(1, Math.min(30, Math.round(1000 / avgDelay)));
+    loadProject(frames, fps, frames.length === 1);
+    if (truncated) {
+      alert(`This GIF has more than ${MAX_FRAMES} frames; only the first ${MAX_FRAMES} were imported.`);
+    }
+  } finally {
+    hideProgress();
   }
 }
 
