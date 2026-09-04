@@ -73,6 +73,14 @@ expect((await counter()) === '1 / 30', '30 frames at 12fps', await counter());
 expect((await page.locator('.thumb').count()) === 30, '30 thumbnails');
 expect(!(await page.locator('#prev-toggle').isDisabled()), 'previous-frame toggle enabled for video');
 
+const thumbBox = await page.locator('.thumb').first().boundingBox();
+expect(thumbBox.height >= 100, 'thumbnail at least 100px tall', `h=${thumbBox.height}`);
+const thumbScroll = await page.evaluate(() => {
+  const el = document.getElementById('thumb-list');
+  return { scrollable: el.scrollHeight > el.clientHeight, client: el.clientHeight, scroll: el.scrollHeight };
+});
+expect(thumbScroll.scrollable, 'thumb pane scrolls when long', JSON.stringify(thumbScroll));
+
 // ---------- 2. drawing ----------
 console.log('\n[2] pen drawing + thumbnails');
 await drawStroke(20, 30, 70, 60);

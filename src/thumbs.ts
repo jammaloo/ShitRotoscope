@@ -1,7 +1,7 @@
 import { hasProject, on, setCurrent, state } from './state';
 
 const thumbList = document.getElementById('thumb-list')!;
-const THUMB_W = 116;
+const THUMB_H = 100;
 
 export function initThumbs(): void {
   on('loaded', rebuild);
@@ -23,8 +23,9 @@ function rebuild(): void {
     btn.title = `Frame ${i + 1}`;
 
     const canvas = document.createElement('canvas');
-    canvas.width = THUMB_W;
-    canvas.height = Math.max(1, Math.round((frame.source.height / frame.source.width) * THUMB_W));
+    // 100px-tall cards; width follows the frame's aspect ratio.
+    canvas.height = THUMB_H;
+    canvas.width = Math.max(40, Math.round((frame.source.width / frame.source.height) * THUMB_H));
     btn.appendChild(canvas);
 
     const num = document.createElement('span');
