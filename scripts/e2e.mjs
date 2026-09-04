@@ -154,12 +154,15 @@ expect((await pixelAt(0.15, 0.5)).every((v, i) => Math.abs(v - p0[i]) < 10), 'in
 
 await drawStroke(30, 30, 60, 60); // something to look at with the background hidden
 await page.click('label.toggle-row:has(#hide-bg-toggle)');
-const frameEmpty = await page.$eval('#frame-canvas', (c) => {
+const frameWhite = await page.$eval('#frame-canvas', (c) => {
   const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
-  for (let i = 3; i < d.length; i += 4) if (d[i] > 0) return false;
+  const step = 4 * 97;
+  for (let i = 0; i < d.length; i += step) {
+    if (d[i] !== 255 || d[i + 1] !== 255 || d[i + 2] !== 255 || d[i + 3] !== 255) return false;
+  }
   return true;
 });
-expect(frameEmpty, 'hide background clears frame layer');
+expect(frameWhite, 'hidden background shows white canvas');
 expect(await canvasHasInk('#draw-canvas'), 'drawing still visible with background hidden');
 await page.click('label.toggle-row:has(#hide-bg-toggle)');
 expect((await pixelAt(0.15, 0.5)).every((v, i) => Math.abs(v - p0[i]) < 10), 'background restored');

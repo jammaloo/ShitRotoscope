@@ -24,8 +24,8 @@ Then open http://localhost:5173.
    tracing, and **Face Detection** to show face contours (oval, eyes, brows,
    lips, nose) to trace against — **Copy Faces to Canvas** stamps those
    contours onto the drawing with the current pen color and size (undoable).
-   The **Background** section can hide the video frame entirely or invert it
-   while you draw.
+   The **Background** section can hide the video frame (leaving a white
+   canvas) or invert it while you draw.
 3. Click thumbnails on the left to jump between frames; ← / → arrows also work.
 4. **Save** exports a looping GIF. Pick the background: white, black, or
    transparent (GIFs use 1-bit alpha, PNGs keep full transparency). Tick

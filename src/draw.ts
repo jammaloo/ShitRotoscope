@@ -64,7 +64,11 @@ export function renderStage(): void {
   const frame = state.frames[state.current];
   const fctx = frameCanvas.getContext('2d')!;
   fctx.clearRect(0, 0, frameCanvas.width, frameCanvas.height);
-  if (!state.hideFrame) {
+  if (state.hideFrame) {
+    // Hidden background shows as a white canvas rather than the dark stage.
+    fctx.fillStyle = '#ffffff';
+    fctx.fillRect(0, 0, frameCanvas.width, frameCanvas.height);
+  } else {
     fctx.drawImage(frame.source, 0, 0);
     if (state.invertFrame) {
       // 'difference' with white inverts all channels; universally supported.
