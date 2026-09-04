@@ -28,7 +28,8 @@ Then open http://localhost:5173.
    while you draw.
 3. Click thumbnails on the left to jump between frames; ← / → arrows also work.
 4. **Save** exports a looping GIF. Pick the background: white, black, or
-   transparent (GIFs use 1-bit alpha, PNGs keep full transparency).
+   transparent (GIFs use 1-bit alpha, PNGs keep full transparency). Tick
+   **Skip unedited frames** to throw away every frame you never drew on.
    Single-image projects export a PNG instead.
 
 ## Notes

@@ -24,6 +24,17 @@ function openSaveDialog(): void {
     ? '1 frame'
     : `${state.frames.length} frames · ${state.fps} fps`;
   saveOk.textContent = state.singleImage ? 'Export PNG' : 'Export GIF';
+
+  const row = document.getElementById('skip-unedited-row')!;
+  if (state.singleImage) {
+    row.hidden = true;
+  } else {
+    row.hidden = false;
+    const edited = state.frames.filter((f) => f.drawing).length;
+    (document.getElementById('skip-unedited') as HTMLInputElement).disabled = edited === 0;
+    (document.getElementById('skip-count') as HTMLElement).textContent =
+      `(${edited} of ${state.frames.length} edited)`;
+  }
   saveDialog.showModal();
 }
 
@@ -31,13 +42,20 @@ async function onConfirm(): Promise<void> {
   if (!hasProject()) return;
   const checked = saveDialog.querySelector<HTMLInputElement>('input[name="bg"]:checked');
   const bg = (checked?.value ?? 'white') as Background;
+  const skipInput = document.getElementById('skip-unedited') as HTMLInputElement | null;
+  const skipUnedited = skipInput?.checked ?? false;
   saveDialog.close();
 
   try {
     if (state.singleImage) {
       await exportPng(bg);
     } else {
-      await exportGif(bg);
+      const frames = skipUnedited ? state.frames.filter((f) => f.drawing) : state.frames;
+      if (frames.length === 0) {
+        alert('No edited frames to export.');
+        return;
+      }
+      await exportGif(frames, bg);
     }
   } catch (err) {
     console.error(err);
@@ -70,8 +88,8 @@ async function exportPng(bg: Background): Promise<void> {
   downloadBlob(blob, 'shitrotoscope.png');
 }
 
-async function exportGif(bg: Background): Promise<void> {
-  const { frames, fps } = state;
+async function exportGif(frames: Frame[], bg: Background): Promise<void> {
+  const { fps } = state;
   const delay = Math.max(20, Math.round(1000 / fps / 10) * 10); // GIF delays are 1/100s units
   const gif = GIFEncoder();
   const w = frames[0].source.width;

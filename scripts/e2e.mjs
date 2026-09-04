@@ -251,6 +251,24 @@ try {
 }
 expect(tprobe.endsWith(',30'), 'transparent gif has 30 frames', tprobe);
 
+// skip-unedited variant: only frames 1 and 5 have drawings
+const [download2b] = await Promise.all([
+  page.waitForEvent('download', { timeout: 60000 }),
+  (async () => {
+    await page.click('#save-btn');
+    await page.waitForSelector('#save-dialog[open]');
+    const count = (await page.textContent('#skip-count')).trim();
+    expect(count.includes('3 of 30'), 'edited count shown in dialog', count);
+    await page.check('#skip-unedited');
+    await page.click('#save-ok');
+  })(),
+]);
+await download2b.saveAs(OUT + '/test-edited.gif');
+const editedProbe = execSync(
+  `ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=nb_read_frames -of csv=p=0 "${OUT}/test-edited.gif"`,
+).toString().trim();
+expect(Number(editedProbe.split(',').pop()) === 3, 'skipping unedited exports only edited frames', editedProbe);
+
 // ---------- 7. single image + face detection + PNG ----------
 console.log('\n[7] image import + face detection + PNG export');
 page.once('dialog', (d) => d.accept()); // replace-project confirm
@@ -373,6 +391,7 @@ const [gifOut] = await Promise.all([
   (async () => {
     await page.click('#save-btn');
     await page.waitForSelector('#save-dialog[open]');
+    await page.uncheck('#skip-unedited'); // left checked by the section-6 export
     await page.click('#save-ok');
   })(),
 ]);
