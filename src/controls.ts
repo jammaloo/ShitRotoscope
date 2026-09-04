@@ -119,11 +119,21 @@ export function initControls(): void {
   window.addEventListener('keydown', (e) => {
     if (document.querySelector('dialog[open]')) return;
     const target = e.target as HTMLElement;
+    // Arrows always step frames, whatever is focused — except real text entry,
+    // where arrows belong to the field (caret / number stepping).
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      // Let arrow keys act natively on focused controls (e.g. the brush slider).
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-      setCurrent(state.current + (e.key === 'ArrowLeft' ? -1 : 1));
-    } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+      const isTextInput =
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable ||
+        (target instanceof HTMLInputElement &&
+          ['text', 'number', 'search', 'email', 'tel', 'url', 'password'].includes(target.type));
+      if (!isTextInput) {
+        e.preventDefault();
+        setCurrent(state.current + (e.key === 'ArrowLeft' ? -1 : 1));
+        return;
+      }
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
       undo();
     }

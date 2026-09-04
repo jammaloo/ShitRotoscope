@@ -140,6 +140,15 @@ expect((await counter()) === '1 / 30', 'arrow key back', await counter());
 await page.keyboard.press('ArrowRight');
 expect((await counter()) === '2 / 30', 'arrow key forward', await counter());
 
+// regression: arrows must step frames even when a control has focus
+await page.focus('#brush-slider');
+await page.keyboard.press('ArrowLeft');
+expect((await counter()) === '1 / 30', 'arrow works with slider focused', await counter());
+expect((await page.textContent('#brush-label')).trim() === '6 px', 'slider not changed by arrows');
+await page.focus('#prev-toggle');
+await page.keyboard.press('ArrowRight');
+expect((await counter()) === '2 / 30', 'arrow works with checkbox focused', await counter());
+
 await page.click('label.toggle-row:has(#prev-toggle)');
 expect(await canvasHasInk('#overlay-canvas'), 'onion skin drawn on overlay');
 await page.click('label.toggle-row:has(#prev-toggle)');
