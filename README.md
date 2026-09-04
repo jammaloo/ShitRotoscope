@@ -47,7 +47,25 @@ Then open http://localhost:5173.
 ```sh
 npm run build      # type-check + production build
 node scripts/e2e.mjs   # headless end-to-end test (needs Chrome + dev server + /tmp/srt fixtures)
+node scripts/smoke-build.mjs  # smoke-tests the built dist/ against `vite preview`
 ```
+
+## Building & serving static assets
+
+`npm run build` produces a fully static, self-contained site in `dist/` —
+bundle, styles, and all face-detection models — with relative asset paths, so
+it works from any static file server or subdirectory:
+
+```sh
+npm run build
+npm run preview            # serves dist/ at http://localhost:4173
+# or use any static server, e.g.:
+npx serve dist
+python3 -m http.server -d dist 8080
+```
+
+Note it must be served over HTTP (not opened as a `file://` page), because the
+face-detection WASM is fetched.
 
 The e2e script expects `/tmp/srt/test.mp4` (2.5s clip), `/tmp/srt/face.jpg` (one
 face) and `/tmp/srt/two-1036641.jpg` (three faces); regenerate the mp4 with:
