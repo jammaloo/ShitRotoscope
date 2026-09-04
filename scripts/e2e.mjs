@@ -81,6 +81,13 @@ const thumbScroll = await page.evaluate(() => {
 });
 expect(thumbScroll.scrollable, 'thumb pane scrolls when long', JSON.stringify(thumbScroll));
 
+// toggle visuals must match app state on first load (browser form-restore guard)
+const toggleSync = await page.evaluate(() => {
+  const checked = (id) => document.getElementById(id).checked;
+  return { face: checked('face-toggle'), prev: checked('prev-toggle'), hide: checked('hide-bg-toggle'), invert: checked('invert-bg-toggle') };
+});
+expect(!toggleSync.face && !toggleSync.prev && !toggleSync.hide && !toggleSync.invert, 'toggles synced to state on load', JSON.stringify(toggleSync));
+
 // ---------- 2. drawing ----------
 console.log('\n[2] pen drawing + thumbnails');
 await drawStroke(20, 30, 70, 60);

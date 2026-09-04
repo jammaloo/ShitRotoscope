@@ -85,7 +85,7 @@
           <button id="brush-minus" class="btn icon-btn small" title="Smaller brush">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
-          <input id="brush-slider" type="range" min="1" max="60" value="6" />
+          <input id="brush-slider" type="range" autocomplete="off" min="1" max="60" value="6" />
           <button id="brush-plus" class="btn icon-btn small" title="Bigger brush">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
@@ -113,12 +113,12 @@
         <h2>Overlays</h2>
         <label class="toggle-row">
           <span>Face Detection</span>
-          <span class="toggle"><input type="checkbox" id="face-toggle" /><span class="slider"></span></span>
+          <span class="toggle"><input type="checkbox" autocomplete="off" id="face-toggle" /><span class="slider"></span></span>
         </label>
         <button id="copy-faces-btn" class="btn small full-width" disabled>Copy Faces to Canvas</button>
         <label class="toggle-row">
           <span>Previous Frame</span>
-          <span class="toggle"><input type="checkbox" id="prev-toggle" /><span class="slider"></span></span>
+          <span class="toggle"><input type="checkbox" autocomplete="off" id="prev-toggle" /><span class="slider"></span></span>
         </label>
       </section>
 
@@ -126,11 +126,11 @@
         <h2>Background</h2>
         <label class="toggle-row">
           <span>Hide</span>
-          <span class="toggle"><input type="checkbox" id="hide-bg-toggle" /><span class="slider"></span></span>
+          <span class="toggle"><input type="checkbox" autocomplete="off" id="hide-bg-toggle" /><span class="slider"></span></span>
         </label>
         <label class="toggle-row">
           <span>Invert</span>
-          <span class="toggle"><input type="checkbox" id="invert-bg-toggle" /><span class="slider"></span></span>
+          <span class="toggle"><input type="checkbox" autocomplete="off" id="invert-bg-toggle" /><span class="slider"></span></span>
         </label>
       </section>
       </div>
@@ -163,12 +163,12 @@
     <p id="save-meta" class="hint"></p>
     <h4>Background</h4>
     <div class="bg-options">
-      <label class="bg-option"><input type="radio" name="bg" value="white" checked /><span>White</span></label>
-      <label class="bg-option"><input type="radio" name="bg" value="black" /><span>Black</span></label>
-      <label class="bg-option"><input type="radio" name="bg" value="transparent" /><span>Transparent</span></label>
+      <label class="bg-option"><input type="radio" name="bg" autocomplete="off" value="white" checked /><span>White</span></label>
+      <label class="bg-option"><input type="radio" name="bg" autocomplete="off" value="black" /><span>Black</span></label>
+      <label class="bg-option"><input type="radio" name="bg" autocomplete="off" value="transparent" /><span>Transparent</span></label>
     </div>
     <label class="check-row" id="skip-unedited-row">
-      <input type="checkbox" id="skip-unedited" />
+      <input type="checkbox" autocomplete="off" id="skip-unedited" />
       <span>Skip unedited frames <span id="skip-count" class="hint"></span></span>
     </label>
     <div class="dialog-actions">

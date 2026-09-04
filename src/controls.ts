@@ -149,6 +149,13 @@ export function initControls(): void {
   updateToolButtons();
   updateSwatches();
   updatePrevToggle();
+
+  // Sync toggle visuals from state: browsers restore checkbox states on
+  // reload, which would desync the UI from the actual (all-off) settings.
+  faceToggle.checked = state.showFace;
+  prevToggle.checked = state.showPrev;
+  hideBgToggle.checked = state.hideFrame;
+  invertBgToggle.checked = state.invertFrame;
 }
 
 export async function runImport(file: File): Promise<void> {
