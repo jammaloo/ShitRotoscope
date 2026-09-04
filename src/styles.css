@@ -517,6 +517,11 @@ body {
 
 /* save */
 
+.btn.full-width {
+  width: 100%;
+  margin-top: 6px;
+}
+
 .save-area {
   margin-top: auto;
   padding: 16px;

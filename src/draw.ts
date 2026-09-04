@@ -93,6 +93,29 @@ export function undo(): void {
   updateUndoButton();
 }
 
+/**
+ * Apply a drawing operation to the current frame's drawing canvas with the
+ * pen styling (current color and brush size), snapshotting for undo first.
+ */
+export function applyToDrawing(draw: (ctx: CanvasRenderingContext2D) => void): void {
+  if (!hasProject() || state.current < 0) return;
+  const frame = state.frames[state.current];
+  const dctx = drawingFor(frame).getContext('2d')!;
+  dctx.lineCap = 'round';
+  dctx.lineJoin = 'round';
+  dctx.globalCompositeOperation = 'source-over';
+  dctx.strokeStyle = state.color;
+  dctx.lineWidth = state.brushSize;
+
+  undoStack.push(dctx.getImageData(0, 0, frame.source.width, frame.source.height));
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+
+  draw(dctx);
+  paintToStage(frame);
+  emit('thumb', state.current);
+  updateUndoButton();
+}
+
 function updateUndoButton(): void {
   const btn = document.getElementById('undo-btn') as HTMLButtonElement | null;
   if (btn) btn.disabled = undoStack.length === 0;

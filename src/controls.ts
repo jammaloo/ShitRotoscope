@@ -1,7 +1,7 @@
-import { undo } from './draw';
-import { ensureDetector } from './facedetect';
+import { undo, applyToDrawing } from './draw';
+import { detectFrame, ensureDetector } from './facedetect';
 import { importFile } from './import';
-import { renderOverlay } from './overlays';
+import { renderOverlay, strokeFaceContours } from './overlays';
 import {
   hasProject,
   on,
@@ -33,6 +33,7 @@ const faceToggle = document.getElementById('face-toggle')! as HTMLInputElement;
 const prevToggle = document.getElementById('prev-toggle')! as HTMLInputElement;
 const hideBgToggle = document.getElementById('hide-bg-toggle')! as HTMLInputElement;
 const invertBgToggle = document.getElementById('invert-bg-toggle')! as HTMLInputElement;
+const copyFacesBtn = document.getElementById('copy-faces-btn')! as HTMLButtonElement;
 const saveBtn = document.getElementById('save-btn')! as HTMLButtonElement;
 
 export function initControls(): void {
@@ -87,6 +88,30 @@ export function initControls(): void {
     }
   });
   prevToggle.addEventListener('change', () => setShowPrev(prevToggle.checked));
+
+  // ---- copy detected faces to the drawing canvas ----
+  copyFacesBtn.addEventListener('click', async () => {
+    if (!hasProject()) return;
+    const originalLabel = copyFacesBtn.textContent;
+    copyFacesBtn.disabled = true;
+    try {
+      const index = state.current;
+      const faces = await detectFrame(index);
+      if (state.current !== index) return; // user moved on while detecting
+      if (faces) {
+        applyToDrawing((ctx) => strokeFaceContours(ctx, faces));
+      } else {
+        copyFacesBtn.textContent = 'No faces found';
+        await new Promise((r) => setTimeout(r, 1200));
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Could not run face detection.');
+    } finally {
+      copyFacesBtn.textContent = originalLabel;
+      copyFacesBtn.disabled = !hasProject();
+    }
+  });
   hideBgToggle.addEventListener('change', () => setHideFrame(hideBgToggle.checked));
   invertBgToggle.addEventListener('change', () => setInvertFrame(invertBgToggle.checked));
 
@@ -157,6 +182,7 @@ function updateNav(): void {
   prevBtn.disabled = !hasProject() || state.current <= 0;
   nextBtn.disabled = !hasProject() || state.current >= state.frames.length - 1;
   saveBtn.disabled = !hasProject();
+  copyFacesBtn.disabled = !hasProject();
 }
 
 function updateToolButtons(): void {

@@ -316,6 +316,28 @@ console.log(`    blue pixels: ${bluePx}, column clusters: ${clusters}`);
 expect(clusters >= 2, 'multiple face boxes drawn', `clusters=${clusters}, blue=${bluePx}`);
 await page.screenshot({ path: OUT + '/multiface.png' });
 
+// copy detected faces onto the drawing canvas with the current pen
+expect(!(await canvasHasInk('#draw-canvas')), 'drawing empty before copy');
+await page.click('#copy-faces-btn');
+await page.waitForFunction(() => {
+  const c = document.querySelector('#draw-canvas');
+  const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  for (let i = 3; i < d.length; i += 4) if (d[i] > 0) return true;
+  return false;
+}, null, { timeout: 20000 });
+expect(await canvasHasInk('#draw-canvas'), 'faces copied to drawing canvas');
+const thumbHadInk = await page.$eval('.thumb:nth-child(1) canvas', (c) => {
+  const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  let nonWhite = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i] < 250 || d[i + 1] < 250 || d[i + 2] < 250) nonWhite++;
+  }
+  return nonWhite > 50;
+});
+expect(thumbHadInk, 'copied faces show in thumbnail');
+await page.click('#undo-btn');
+expect(!(await canvasHasInk('#draw-canvas')), 'face copy is undoable');
+
 const [download3] = await Promise.all([
   page.waitForEvent('download', { timeout: 30000 }),
   (async () => {

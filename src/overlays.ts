@@ -52,10 +52,17 @@ function drawFaces(ctx: CanvasRenderingContext2D, faces: FaceOverlay[]): void {
   ctx.strokeStyle = FACE_COLOR;
   ctx.globalAlpha = 0.95;
   ctx.lineWidth = Math.max(1.5, 2.2 * (overlayCanvas.width / 640));
+  strokeFaceContours(ctx, faces);
+  ctx.restore();
+}
 
+/**
+ * Stroke the face-contour paths (face oval, eyes, brows, lips, nose) for
+ * every face using the context's current styling.
+ */
+export function strokeFaceContours(ctx: CanvasRenderingContext2D, faces: FaceOverlay[]): void {
   for (const face of faces) {
     const pts = face.landmarks;
-    // Face oval + eyes + eyebrows + lips.
     ctx.beginPath();
     for (const conn of FaceLandmarker.FACE_LANDMARKS_CONTOURS) {
       const a = pts[conn.start];
@@ -68,7 +75,6 @@ function drawFaces(ctx: CanvasRenderingContext2D, faces: FaceOverlay[]): void {
     strokePolyline(ctx, pts, NOSE_BRIDGE);
     strokePolyline(ctx, pts, NOSE_BASE);
   }
-  ctx.restore();
 }
 
 function strokePolyline(ctx: CanvasRenderingContext2D, pts: { x: number; y: number }[], indices: number[]): void {
